@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { navigate } from "raviger";
 
-import { formData, formField } from "../types/form";
+import { formData, formField, optionField, selectField, textField } from "../types/form";
 import { getLocalForms } from "../utils/StorageUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
@@ -70,6 +70,17 @@ const PreviewForm = (props: { formId: Number }) => {
   };
 
   const handleFieldValueChange = (value: string) => {
+    setFormFields((formFields: formField[]) => {
+      return formFields.map((field: formField) => {
+        if (field.id === currentField.id) {
+          field.value = value;
+        }
+        return field;
+      });
+    });
+  };
+
+  const handleFieldMultiValueChange = (value: string[]) => {
     const field = getFormField(currentField.id);
     if (field) {
       setFormFields(
@@ -80,6 +91,67 @@ const PreviewForm = (props: { formId: Number }) => {
           return field;
         })
       );
+    }
+  };
+
+  const renderField = () => {
+    const field = getFormField(currentField.id);
+    if (field) {
+      switch (field.kind) {
+        case "text":
+          return field.type === "textarea" ? (
+            <textarea
+              className="appearance-none block w-full bg-slate-100 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
+              id={currentField.id.toString()}
+              name={currentField.label}
+              placeholder={currentField.label}
+              value={(currentField as textField).value}
+              onChange={(e) => {
+                handleFieldValueChange(e.target.value);
+              }}
+            />
+          ) : (
+            <input
+              className="appearance-none block w-full bg-slate-100 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
+              id={currentField.id.toString()}
+              name={currentField.label}
+              placeholder={currentField.label}
+              value={(currentField as textField).value}
+              type={currentField.type}
+              onChange={(e) => {
+                handleFieldValueChange(e.target.value);
+              }}
+            />
+          );
+        case "dropdown":
+          return (
+            <select
+              className="block appearance-none w-full bg-slate-100 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none"
+              id={currentField.id.toString()}
+              name={currentField.label}
+              value={(currentField as selectField).value}
+              onChange={(e) => {
+                (currentField as selectField).multiple
+                  ? handleFieldMultiValueChange(
+                      Array.from(
+                        e.target.selectedOptions,
+                        (option) => option.value
+                      )
+                    )
+                  : handleFieldValueChange(e.target.value);
+              }}
+              multiple={(currentField as selectField).multiple}
+            >
+              {field.options.map((option: optionField) => {
+                return (
+                  <option key={option.value} value={option.text}>
+                    {option.text}
+                  </option>
+                );
+              })}
+            </select>
+          );
+      }
     }
   };
 
@@ -96,16 +168,7 @@ const PreviewForm = (props: { formId: Number }) => {
           >
             {currentField.label}
           </label>
-          <input
-            className="appearance-none block w-full bg-slate-100 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
-            id={currentField.id.toString()}
-            name={currentField.label}
-            placeholder={currentField.label}
-            value={currentField.value}
-            onChange={(e) => {
-              handleFieldValueChange(e.target.value);
-            }}
-          />
+          {renderField()}
         </div>
         {/* buttons */}
         <div className="flex justify-end w-full gap-2">
