@@ -111,7 +111,7 @@ const renderInput = (
 const FormLabelInput = ({ field, removeField, setValue, addOption }: formInputProps) => {
   return (
     <div className="flex flex-col" key={field.id.toString()}>
-      <label htmlFor={field.id.toString()}>{field.label} ({field.type})</label>
+      <label htmlFor={field.id.toString()}>{field.label} ({field.type} {(field as selectField).multiple && " - multiple"})</label>
       <div className="flex gap-2">
         {renderInput(field, removeField, setValue, addOption)}
       </div>
