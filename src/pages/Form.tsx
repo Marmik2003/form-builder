@@ -15,7 +15,7 @@ const newForm: formData = {
 const Form = (props: { formId?: Number }) => {
   const [form, setForm] = useState(getInitialState(newForm, props.formId));
   const [newField, setNewField] = React.useState("");
-  const [fieldType, setFieldType] = React.useState<textFieldTypes | "select" | "multiselect">("text");
+  const [fieldType, setFieldType] = React.useState<textFieldTypes | "select" | "multiselect" | "radio">("text");
 
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -97,6 +97,20 @@ const Form = (props: { formId?: Number }) => {
               },
             ],
           };
+        case "radio":
+          return {
+            ...form,
+            formFields: [
+              ...form.formFields,
+              {
+                id: Number(new Date()),
+                label: newField,
+                type: "select",
+                kind: "radio",
+                options: [],
+              },
+            ],
+          };
         default:
           return {
             ...form,
@@ -117,7 +131,7 @@ const Form = (props: { formId?: Number }) => {
   };
 
   const handleTextInputChange = (field: formField, value: string, optVal?: string) => {
-    if (optVal !== undefined && field.kind === "dropdown") {
+    if (optVal !== undefined && (field.kind === "dropdown" || field.kind === "radio")) {
       setForm((form: formData) => {
         return {
           ...form,
@@ -185,6 +199,10 @@ const Form = (props: { formId?: Number }) => {
     {
       label: "Multi-Select",
       value: "multiselect",
+    },
+    {
+      label: "Radio",
+      value: "radio",
     },
     {
       label: "Date",

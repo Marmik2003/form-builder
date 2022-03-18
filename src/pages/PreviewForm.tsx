@@ -118,7 +118,7 @@ const PreviewForm = (props: { formId: Number }) => {
             />
           ) : (
             <input
-              className="appearance-none block w-full bg-slate-100 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
+              className="block w-full bg-slate-100 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none"
               id={currentField.id.toString()}
               name={currentField.label}
               placeholder={currentField.label}
@@ -132,7 +132,7 @@ const PreviewForm = (props: { formId: Number }) => {
         case "dropdown":
           return (
             <select
-              className="block appearance-none w-full bg-slate-100 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none"
+              className="block w-full bg-slate-100 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none"
               id={currentField.id.toString()}
               name={currentField.label}
               value={(currentField as selectField).value}
@@ -156,6 +156,31 @@ const PreviewForm = (props: { formId: Number }) => {
                 );
               })}
             </select>
+          );
+        case "radio":
+          return (
+            <div className="flex flex-col">
+              {field.options.map((option: optionField) => {
+                return (
+                  <label
+                    key={option.value}
+                    className="block text-gray-700 text-sm font-bold mb-2"
+                  >
+                    <input
+                      className="mr-2 leading-tight"
+                      type={currentField.kind}
+                      name={currentField.label}
+                      value={option.value}
+                      checked={currentField.value === option.value}
+                      onChange={(e) => {
+                        handleFieldValueChange(e.target.value);
+                      }}
+                    />
+                    {option.text}
+                  </label>
+                );
+              })}
+            </div>
           );
       }
     }
