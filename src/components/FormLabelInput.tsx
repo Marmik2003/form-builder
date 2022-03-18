@@ -117,7 +117,9 @@ const renderInput = (
 const FormLabelInput = ({ field, removeField, setValue, addOption }: formInputProps) => {
   return (
     <div className="flex flex-col" key={field.id.toString()}>
-      <label className="pb-2" htmlFor={field.id.toString()}>{field.label} ({field.type}{(field as selectField).multiple && " - multiple"})</label>
+      <label className="pb-2" htmlFor={field.id.toString()}>
+        {field.label} ({field.kind !== "radio" ? field.type : field.kind}{(field as selectField).multiple && " - multiple"})
+      </label>
       <div className="flex gap-2">
         {renderInput(field, removeField, setValue, addOption)}
       </div>

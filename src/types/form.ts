@@ -25,27 +25,9 @@ export type selectField = {
   value?: string | string[];
   options: optionField[];
   type: "select";
-  kind: "dropdown";
+  kind: "dropdown" | "radio" | "checkbox";
   multiple?: boolean;
-}
-
-export type checkboxField = {
-  id: Number;
-  label: string;
-  value?: boolean[];
-  options: optionField[];
-  type: "checkbox";
-  kind: "checkbox";
-}
-
-
-export type radioField = {
-  id: Number;
-  label: string;
-  value?: string;
-  options: optionField[];
-  type: "radio";
-  kind: "radio";
+  is_tickable?: boolean;
 }
 
 
