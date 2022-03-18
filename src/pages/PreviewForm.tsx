@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { navigate } from "raviger";
 
-import { formData, formField, optionField, selectField, textField } from "../types/form";
+import {
+  formData,
+  formField,
+  optionField,
+  selectField,
+  textField,
+} from "../types/form";
 import { getLocalForms } from "../utils/StorageUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
@@ -161,35 +167,42 @@ const PreviewForm = (props: { formId: Number }) => {
         <h2 className="text-3xl font-semibold">Preview</h2>
       </div>
       <div className="flex flex-col">
-        <div className="preview-form__content__item">
-          <label
-            className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-            htmlFor="grid-search"
-          >
-            {currentField.label}
-          </label>
-          {renderField()}
-        </div>
-        {/* buttons */}
-        <div className="flex justify-end w-full gap-2">
-          {isPreviousField() && (
-            <button
-              type="button"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
-              onClick={getPreviousField}
-            >
-              <FontAwesomeIcon icon={faArrowLeft} /> Previous
-            </button>
-          )}
-          {isNextField() && (
-            <button
-              onClick={getNextField}
-              className="bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 my-4 rounded"
-            >
-              Next <FontAwesomeIcon icon={faArrowRight} />
-            </button>
-          )}
-        </div>
+        {currentField ? (
+          <>
+            <div className="preview-form__content__item">
+              <label
+                className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                htmlFor="grid-search"
+              >
+                {currentField.label}
+              </label>
+              {renderField()}
+            </div>
+            <div className="flex justify-end w-full gap-2">
+              {isPreviousField() && (
+                <button
+                  type="button"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
+                  onClick={getPreviousField}
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} /> Previous
+                </button>
+              )}
+              {isNextField() && (
+                <button
+                  onClick={getNextField}
+                  className="bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 my-4 rounded"
+                >
+                  Next <FontAwesomeIcon icon={faArrowRight} />
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-center">
+            <p className="text-center">No fields to preview</p>
+          </div>
+        )}
       </div>
     </div>
   );
