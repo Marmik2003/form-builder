@@ -221,7 +221,7 @@ const Form = (props: { formId?: Number }) => {
       <input
         value={form.title}
         onChange={(e) => setForm({ ...form, title: e.target.value })}
-        className="border border-gray-200 rounded p-2 w-full"
+        className="border border-gray-200 rounded p-2 w-full border-b-2 mb-4"
         ref={titleRef}
       />
       <div className="flex flex-col gap-4">
