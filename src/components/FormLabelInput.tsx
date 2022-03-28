@@ -1,10 +1,9 @@
 import React from "react";
 import { formField, optionField, selectField } from "../types/form";
-import { FormAction } from "../types/formActions";
 
 interface formInputProps {
   field: formField;
-  removeField: (action: FormAction) => void;
+  removeField: (tgtId: Number, tgtKind: "text" | "dropdown" | "radio", tgtValue?: string) => void;
   value?: string;
   setValue: (fieldKind: "text" | "dropdown" | "radio", id: Number, label:string, isOption?: boolean, fieldValue?: string) => void;
   addOption: (fieldId: Number) => void;
@@ -12,7 +11,7 @@ interface formInputProps {
 
 const renderInput = (
   field: formField,
-  removeField: (action: FormAction) => void,
+  removeField: (tgtId: Number, tgtKind: "text" | "dropdown" | "radio", tgtValue?: string) => void,
   setValue: (fieldKind: "text" | "dropdown" | "radio", id: Number, label:string, isOption?: boolean, fieldValue?: string) => void,
   addOption: (fieldId: Number) => void,
 ) => {
@@ -31,7 +30,7 @@ const renderInput = (
           <button
             type="button"
             className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => removeField({ type: "REMOVE_FIELD", tgtId: field.id, tgtKind: field.kind })}
+            onClick={() => removeField(field.id, field.kind)}
           >
             Remove
           </button>
@@ -53,7 +52,7 @@ const renderInput = (
             <button
               type="button"
               className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => removeField({ type: "REMOVE_FIELD", tgtId: field.id, tgtKind: field.kind })}
+              onClick={() => removeField(field.id, field.kind)}
             >
               Remove
             </button>
@@ -77,7 +76,7 @@ const renderInput = (
               <button
                 type="button"
                 className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                onClick={() => removeField({ type: "REMOVE_FIELD", tgtId: field.id, tgtKind: field.kind, tgtValue: option.value })}
+                onClick={() => removeField(field.id, field.kind, option.value)}
               >
                 Remove
               </button>
@@ -106,7 +105,7 @@ const renderInput = (
           <button
             type="button"
             className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => removeField({ type: "REMOVE_FIELD", tgtId: field.id, tgtKind: field.kind })}
+            onClick={() => removeField(field.id, field.kind )}
           >
             Remove
           </button>

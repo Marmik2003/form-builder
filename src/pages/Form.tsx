@@ -258,7 +258,7 @@ const Form = (props: { formId?: Number }) => {
         {form.formFields.map((field: formField) => (
           <FormLabelInput
             field={field}
-            removeField={dispatch}
+            removeField={(tgtId, tgtKing, tgtValue) => dispatch({ type: "REMOVE_FIELD", tgtId, tgtKind: tgtKing, tgtValue })}
             key={field.id.toString()}
             setValue={(fieldKind, id, label, isOption, value) => dispatch({
               type: "UPDATE_INPUT",
