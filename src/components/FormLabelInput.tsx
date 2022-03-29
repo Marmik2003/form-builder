@@ -3,17 +3,17 @@ import { formField, optionField, selectField } from "../types/form";
 
 interface formInputProps {
   field: formField;
-  removeField: (field: formField) => void;
+  removeField: (tgtId: Number, tgtKind: "text" | "dropdown" | "radio", tgtValue?: string) => void;
   value?: string;
-  setValue: (field: formField, value: string) => void;
-  addOption: (field: selectField) => void;
+  setValue: (fieldKind: "text" | "dropdown" | "radio", id: Number, label:string, isOption?: boolean, fieldValue?: string) => void;
+  addOption: (fieldId: Number) => void;
 }
 
 const renderInput = (
   field: formField,
-  removeField: (field: formField, value?: string) => void,
-  setValue: (field: formField, value: string, text?: string) => void,
-  addOption: (field: selectField) => void,
+  removeField: (tgtId: Number, tgtKind: "text" | "dropdown" | "radio", tgtValue?: string) => void,
+  setValue: (fieldKind: "text" | "dropdown" | "radio", id: Number, label:string, isOption?: boolean, fieldValue?: string) => void,
+  addOption: (fieldId: Number) => void,
 ) => {
   switch (field.type) {
     case "text":
@@ -24,13 +24,13 @@ const renderInput = (
             id={field.id.toString()}
             placeholder={field.label}
             value={field.label}
-            onChange={(e) => setValue(field, e.target.value)}
+            onChange={(e) => setValue(field.kind, field.id, e.target.value)}
             className="border border-gray-200 rounded p-2 w-full"
           />
           <button
             type="button"
             className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => removeField(field)}
+            onClick={() => removeField(field.id, field.kind)}
           >
             Remove
           </button>
@@ -46,13 +46,13 @@ const renderInput = (
               id={field.id.toString()}
               placeholder={field.label}
               value={field.label}
-              onChange={(e) => setValue(field, e.target.value)}
+              onChange={(e) => setValue(field.kind, field.id, e.target.value)}
               className="border border-gray-200 rounded p-2 w-full"
             />
             <button
               type="button"
               className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => removeField(field)}
+              onClick={() => removeField(field.id, field.kind)}
             >
               Remove
             </button>
@@ -70,13 +70,13 @@ const renderInput = (
                 id={option.value}
                 placeholder={option.text}
                 value={option.text}
-                onChange={(e) => setValue(field, option.value, e.target.value)}
+                onChange={(e) => setValue(field.kind, field.id, e.target.value, true, option.value)}
                 className="border border-gray-200 rounded p-2 w-full"
               />
               <button
                 type="button"
                 className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                onClick={() => removeField(field, option.value)}
+                onClick={() => removeField(field.id, field.kind, option.value)}
               >
                 Remove
               </button>
@@ -85,7 +85,7 @@ const renderInput = (
           <button
             type="button"
             className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded mb-3"
-            onClick={() => addOption(field)}
+            onClick={() => addOption(field.id)}
           >
             Add Option
           </button>
@@ -99,13 +99,13 @@ const renderInput = (
             id={field.id.toString()}
             placeholder={field.label}
             value={field.label}
-            onChange={(e) => setValue(field, e.target.value)}
+            onChange={(e) => setValue(field.kind, field.id, e.target.value)}
             className="border border-gray-200 rounded p-2 w-full"
           />
           <button
             type="button"
             className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => removeField(field)}
+            onClick={() => removeField(field.id, field.kind )}
           >
             Remove
           </button>

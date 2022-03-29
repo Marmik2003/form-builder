@@ -1,10 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useReducer } from "react";
 import { Link, navigate } from "raviger";
 
-import { formData, formField,optionField, selectField, textField, textFieldTypes } from "../types/form";
+import {
+  formData,
+  formField,
+  selectField,
+  textFieldTypes,
+} from "../types/form";
 import { getInitialState, saveFormData } from "../utils/StorageUtils";
 
 import FormLabelInput from "../components/FormLabelInput";
+import { FormAction } from "../types/formActions";
 
 const newForm: formData = {
   id: Number(new Date()),
@@ -12,10 +18,211 @@ const newForm: formData = {
   formFields: [],
 };
 
+const fieldTypes = [
+  {
+    label: "Text",
+    value: "text",
+  },
+  {
+    label: "Dropdown",
+    value: "select",
+  },
+  {
+    label: "Multi-Select",
+    value: "multiselect",
+  },
+  {
+    label: "Radio",
+    value: "radio",
+  },
+  {
+    label: "Date",
+    value: "date",
+  },
+  {
+    label: "Time",
+    value: "time",
+  },
+  {
+    label: "Number",
+    value: "number",
+  },
+  {
+    label: "Email",
+    value: "email",
+  },
+  {
+    label: "Phone",
+    value: "tel",
+  },
+  {
+    label: "Textarea",
+    value: "textarea",
+  },
+  {
+    label: "Password",
+    value: "password",
+  },
+];
+
+const getNewField: (
+  fieldType: textFieldTypes | "select" | "multiselect" | "radio",
+  newField: string
+) => formField = (fieldType, newField) => {
+  switch (fieldType) {
+    case "select":
+      return {
+        id: Number(new Date()),
+        label: newField,
+        type: fieldType,
+        options: [],
+        kind: "dropdown",
+      };
+    case "multiselect":
+      return {
+        id: Number(new Date()),
+        label: newField,
+        type: "select",
+        options: [],
+        kind: "dropdown",
+        multiple: true,
+      };
+    case "radio":
+      return {
+        id: Number(new Date()),
+        label: newField,
+        type: "select",
+        kind: "radio",
+        options: [],
+      };
+    default:
+      return {
+        id: Number(new Date()),
+        label: newField,
+        value: "",
+        type: fieldType,
+        kind: "text",
+      };
+  }
+};
+
+// Action Reducers
+const reducer: (state: formData, action: FormAction) => formData = (state, action) => {
+  switch (action.type) {
+    case "ADD_FIELD":
+      const newField = getNewField(action.fieldType, action.newField);
+      action.callback();
+      return {
+        ...state,
+        formFields: [...state.formFields, newField],
+      };
+    case "REMOVE_FIELD":
+      if(action.tgtValue !== undefined && action.tgtKind === "dropdown") {
+        return {
+          ...state,
+          formFields: state.formFields.map((field) => {
+            if(field.id === action.tgtId) {
+              (field as selectField).options = (field as selectField).options.filter(option => option.value !== action.tgtValue);
+            }
+            return field;
+          })
+        }
+      } else {
+        return {
+          ...state,
+          formFields: state.formFields.filter((field) => field.id !== action.tgtId)
+        }
+      }
+    case "UPDATE_TITLE":
+      return {
+        ...state,
+        title: action.title,
+      }
+    case "UPDATE_INPUT":
+      if (action.isOption && (action.fieldKind === "dropdown" || action.fieldKind === "radio")) {
+        return {
+          ...state,
+          formFields: state.formFields.map((field) => {
+            if (field.id === action.fieldId) {
+              return {
+                ...field,
+                options: (field as selectField).options.map((option) => {
+                  if (option.value === action.fieldValue) {
+                    return {
+                      ...option,
+                      text: action.fieldLabel,
+                    };
+                  }
+                  return option;
+                })
+              }
+            }
+            return field;
+          })
+        }
+      } else {
+        return {
+          ...state,
+          formFields: state.formFields.map((field) => {
+            if (field.id === action.fieldId) {
+              return {
+                ...field,
+                label: action.fieldLabel,
+              }
+            }
+            return field;
+          })
+        }
+      }
+    case "REMOVE_INPUT":
+      if (action.fieldValue) {
+        return {
+          ...state,
+          formFields: state.formFields.map((field) => {
+            if (field.id === action.fieldId) {
+              return {
+                ...field,
+                options: (field as selectField).options.filter(option => option.value !== action.fieldValue)
+              }
+            }
+            return field;
+          })
+        }
+      } else {
+        return {
+          ...state,
+          formFields: state.formFields.filter((field) => field.id !== action.fieldId)
+        }
+      }
+    case "ADD_OPTION":
+      return {
+        ...state,
+        formFields: state.formFields.map((field) => {
+          if (field.id === action.fieldId) {
+            return {
+              ...field,
+              options: [...(field as selectField).options, {
+                value: Number(new Date()).toString(),
+                text: "",
+              }]
+            }
+          }
+          return field;
+        })
+      }
+    default:
+      return state;
+    }
+
+};
+
+
 const Form = (props: { formId?: Number }) => {
-  const [form, setForm] = useState(getInitialState(newForm, props.formId));
+  const [form, dispatch] = useReducer(reducer, null, () => getInitialState(newForm, props.formId));
   const [newField, setNewField] = React.useState("");
-  const [fieldType, setFieldType] = React.useState<textFieldTypes | "select" | "multiselect" | "radio">("text");
+  const [fieldType, setFieldType] = React.useState<
+    textFieldTypes | "select" | "multiselect" | "radio"
+  >("text");
 
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -39,206 +246,11 @@ const Form = (props: { formId?: Number }) => {
     form.id !== props.formId && navigate(`/form/${form.id}`);
   }, [form.id, props.formId]);
 
-  const removeField = (tgtField: formField, tgtValue?: string) => {
-    if (tgtValue !== undefined && tgtField.kind === "dropdown") {
-      setForm((formVal : formData) => {
-        return {
-          ...form,
-          formFields: form.formFields.map((item: selectField) => {
-            if (item.id === tgtField.id) {
-              item.options = item.options.filter((option: optionField) => option.value !== tgtValue);
-            }
-            return item;
-          }),
-        };
-      });
-    } else {
-      setForm((currentForm: formData) => {
-        const newFields = currentForm.formFields.filter(
-          (item) => item.id !== tgtField.id
-        );
-        return {
-          ...currentForm,
-          formFields: newFields,
-        };
-      });
-    };
-  };
-
-  const addField = () => {
-    setForm((form: formData) => {
-      switch (fieldType) {
-        case "select":
-          return {
-            ...form,
-            formFields: [
-              ...form.formFields,
-              {
-                id: Number(new Date()),
-                label: newField,
-                type: fieldType,
-                options: [],
-                kind: "dropdown",
-              },
-            ],
-          };
-        case "multiselect": 
-          return {
-            ...form,
-            formFields: [
-              ...form.formFields,
-              {
-                id: Number(new Date()),
-                label: newField,
-                type: "select",
-                kind: "dropdown",
-                options: [],
-                multiple: true,
-              },
-            ],
-          };
-        case "radio":
-          return {
-            ...form,
-            formFields: [
-              ...form.formFields,
-              {
-                id: Number(new Date()),
-                label: newField,
-                type: "select",
-                kind: "radio",
-                options: [],
-              },
-            ],
-          };
-        default:
-          return {
-            ...form,
-            formFields: [
-              ...form.formFields,
-              {
-                id: Number(new Date()),
-                label: newField,
-                value: "",
-                type: fieldType,
-                kind: "text",
-              },
-            ],
-          };
-      }
-    });
-    setNewField("");
-  };
-
-  const handleTextInputChange = (field: formField, value: string, optVal?: string) => {
-    if (optVal !== undefined && (field.kind === "dropdown" || field.kind === "radio")) {
-      setForm((form: formData) => {
-        return {
-          ...form,
-          formFields: form.formFields.map((item: formField) => {
-            if (typeof field == typeof item && item.id === field.id) {
-              return {
-                ...item,
-                options: (item as selectField).options.map((opt: optionField) => {
-                  if (opt.value === value) {
-                    opt.text = optVal;
-                  }
-                  return opt;
-                }),
-              };
-            }
-            return item;
-          }),
-        };
-      });
-    } else {
-      setForm({
-        ...form,
-        formFields: form.formFields.map((item: formField) => {
-          if (item.id === field.id) {
-            return {...field, label: value};
-          }
-          return item;
-        }),
-      });
-    }
-  };
-
-  const addOption = (field: selectField) => {
-    setForm((form: formData) => {
-      return {
-        ...form,
-        formFields: form.formFields.map((item: selectField | textField) => {
-          if (typeof item === typeof field && item.id === field.id) {
-            return {
-              ...item,
-              options: [
-                ...(item as selectField).options,
-                {
-                  value: Number(new Date()).toString(),
-                  text: "",
-                },
-              ],
-            };
-          }
-          return item;
-        }),
-      };
-    });
-  };
-
-  const fieldTypes = [
-    {
-      label: "Text",
-      value: "text",
-    },
-    {
-      label: "Dropdown",
-      value: "select",
-    },
-    {
-      label: "Multi-Select",
-      value: "multiselect",
-    },
-    {
-      label: "Radio",
-      value: "radio",
-    },
-    {
-      label: "Date",
-      value: "date",
-    },
-    {
-      label: "Time",
-      value: "time",
-    },
-    {
-      label: "Number",
-      value: "number",
-    },
-    {
-      label: "Email",
-      value: "email",
-    },
-    {
-      label: "Phone",
-      value: "tel",
-    },
-    {
-      label: "Textarea",
-      value: "textarea",
-    },
-    {
-      label: "Password",
-      value: "password",
-    }
-  ];
-
   return (
     <div>
       <input
         value={form.title}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
+        onChange={(e) => dispatch({ type: "UPDATE_TITLE", title: e.target.value })}
         className="border border-gray-200 rounded p-2 w-full border-b-2 mb-4"
         ref={titleRef}
       />
@@ -246,10 +258,20 @@ const Form = (props: { formId?: Number }) => {
         {form.formFields.map((field: formField) => (
           <FormLabelInput
             field={field}
-            removeField={removeField}
+            removeField={(tgtId, tgtKing, tgtValue) => dispatch({ type: "REMOVE_FIELD", tgtId, tgtKind: tgtKing, tgtValue })}
             key={field.id.toString()}
-            setValue={handleTextInputChange}
-            addOption={addOption}
+            setValue={(fieldKind, id, label, isOption, value) => dispatch({
+              type: "UPDATE_INPUT",
+              fieldKind,
+              fieldId: id,
+              fieldLabel: label,
+              isOption,
+              fieldValue: value,
+            })}
+            addOption={(id) => dispatch({
+              type: "ADD_OPTION",
+              fieldId: id,
+            })}
           />
         ))}
         <div className="flex flex-col">
@@ -275,7 +297,7 @@ const Form = (props: { formId?: Number }) => {
             <button
               type="button"
               className="min-w-max bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={addField}
+              onClick={() => dispatch({ type: "ADD_FIELD", fieldType, newField, callback: () => setNewField("") })}
             >
               Add Input
             </button>

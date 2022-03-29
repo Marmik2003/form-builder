@@ -7,7 +7,7 @@ export const getLocalForms = () => {
   return [];
 };
 
-export const getInitialState = (defaultValue: formData, formId?: Number) => {
+export const getInitialState: (arg0: formData, arg1?: Number | undefined) => formData = (defaultValue, formId) => {
   if (formId) {
     const localForms = getLocalForms();
     const result = localForms.find((form: formData) => form.id === formId);
