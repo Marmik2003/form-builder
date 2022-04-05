@@ -1,57 +1,43 @@
-import React, { useReducer, useState } from "react";
+import React, { Key, useEffect, useReducer, useState } from "react";
 import { navigate } from "raviger";
 
 import {
-  formData,
   formField,
   optionField,
   selectField,
   textField,
 } from "../types/form";
-import { getLocalForms } from "../utils/StorageUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { PreviewAction } from "../types/previewActions";
 import { MultiSelect } from "react-multi-select-component";
-
-const getForm: (formId: Number) => formData | undefined = (formId) => {
-  const forms = getLocalForms();
-  const form = forms.find((form: formData) => form.id === formId);
-  if (!form) {
-    navigate("/");
-  } else {
-    return form;
-  }
-};
-
-
-const reducer: (state: formField[], action: PreviewAction) => formField[] = (state, action) => {
-  switch (action.type) {
-    case "UPDATE_VALUE":
-      return state.map((field: formField) => {
-        if (field.id === action.id) {
-          return { ...field, value: action.value };
-        } else {
-          return field;
-        }
-      });
-    case "UPDATE_MULTI_VALUE":
-      return state.map((field: formField) => {
-        if (field.id === action.id) {
-          return { ...(field as selectField), value: action.value };
-        } else {
-          return field;
-        }
-      });
-    }
-};
+import PreviewReducer from "../reducers/PreviewReducer";
+import { authenticateUser, getFormData } from "../utils/APIMethods";
+import LoadingComponent from "../components/LoadingComponent";
 
 
 const PreviewForm = (props: { formId: Number }) => {
-  const form = getForm(props.formId);
+  const [loading, setLoading] = useState(true);
 
-  const [formFields, dispatch] = useReducer(reducer, null, () => form?.formFields ?? []);
+  const [formFields, dispatch] = useReducer(
+    PreviewReducer,
+    []
+  );
   const [currentFieldIdx, setCurrentFieldIdx] = useState(0);
+
+  useEffect(() => {
+    authenticateUser().then((_) => {
+      getFormData(props.formId).then((data) => {
+        setLoading(false);
+
+        dispatch({
+          type: "GET_FORM",
+          formFields: data.fields,
+        });
+      });
+    }).catch((error) => {
+      console.error(error);
+    });
+  }, [props.formId]);
 
   const getCurrentField = () => {
     if (formFields.length > 0) {
@@ -70,9 +56,13 @@ const PreviewForm = (props: { formId: Number }) => {
               id={field.id.toString()}
               name={field.label}
               placeholder={field.label}
-              value={(field as textField).value}
+              value={(field as textField).value ?? ""}
               onChange={(e) => {
-                dispatch({ type: "UPDATE_VALUE", id: field.id, value: e.target.value });
+                dispatch({
+                  type: "UPDATE_VALUE",
+                  id: field.id,
+                  value: e.target.value,
+                });
               }}
             />
           ) : (
@@ -81,51 +71,79 @@ const PreviewForm = (props: { formId: Number }) => {
               id={field.id.toString()}
               name={field.label}
               placeholder={field.label}
-              value={(field as textField).value}
+              value={(field as textField).value ?? ""}
               type={field.type}
               onChange={(e) => {
-                dispatch({ type: "UPDATE_VALUE", id: field.id, value: e.target.value });
+                dispatch({
+                  type: "UPDATE_VALUE",
+                  id: field.id,
+                  value: e.target.value,
+                });
               }}
             />
           );
         case "dropdown":
-          return (
-            (field as selectField).multiple ? (
-              <MultiSelect
-                options={(field as selectField).options.map((option: optionField) => ({
+          return (field as selectField).multiple ? (
+            <MultiSelect
+              options={(field as selectField).options.map(
+                (option: optionField) => ({
                   label: option.text,
-                  value: option.value,
-                }))}
-                value={(field as selectField).value ? (((field as selectField).value as string[]).map((value: string) => ({
-                  value,
-                  label: (field as selectField).options.find((option: optionField) => option.value === value)?.text ?? "",
-                }))) : []}
-                labelledBy={field.label}
-                onChange={(values: any) => {
-                  dispatch({ type: "UPDATE_MULTI_VALUE", id: field.id, value: values.map((value: any) => value.value) });
-                }}
-              />
-            ) : (
-              <select
-                className="block w-full bg-slate-100 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none"
-                id={field.id.toString()}
-                name={field.label}
-                value={(field as selectField).value}
-                onChange={(e) => {
-                  (field as selectField).multiple
-                    ? dispatch({ type: "UPDATE_MULTI_VALUE", id: field.id, value: Array.from(e.target.selectedOptions, (option) => option.value) })
-                    : dispatch({ type: "UPDATE_VALUE", id: field.id, value: e.target.value });
-                }}
-              >
-                {field.options.map((option: optionField) => {
-                  return (
-                    <option key={option.value} value={option.text}>
-                      {option.text}
-                    </option>
-                  );
-                })}
-              </select>
-            )
+                  value: option.id.toString(),
+                })
+              )}
+              value={
+                (field as selectField).value
+                  ? ((field as selectField).value as string[]).map(
+                      (value: string) => ({
+                        value,
+                        label:
+                          (field as selectField).options.find(
+                            (option: optionField) => option.id.toString() === value
+                          )?.text ?? "",
+                      })
+                    )
+                  : []
+              }
+              labelledBy={field.label}
+              onChange={(values: any) => {
+                dispatch({
+                  type: "UPDATE_MULTI_VALUE",
+                  id: field.id,
+                  value: values.map((value: any) => value.value),
+                });
+              }}
+            />
+          ) : (
+            <select
+              className="block w-full bg-slate-100 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none"
+              id={field.id.toString()}
+              name={field.label}
+              value={(field as selectField).value}
+              onChange={(e) => {
+                (field as selectField).multiple
+                  ? dispatch({
+                      type: "UPDATE_MULTI_VALUE",
+                      id: field.id,
+                      value: Array.from(
+                        e.target.selectedOptions,
+                        (option) => option.id.toString()
+                      ),
+                    })
+                  : dispatch({
+                      type: "UPDATE_VALUE",
+                      id: field.id,
+                      value: e.target.value,
+                    });
+              }}
+            >
+              {field.options.map((option: optionField) => {
+                return (
+                  <option key={option.id as Key} value={option.id.toString()}>
+                    {option.text}
+                  </option>
+                );
+              })}
+            </select>
           );
         case "radio":
           return (
@@ -133,7 +151,7 @@ const PreviewForm = (props: { formId: Number }) => {
               {field.options.map((option: optionField) => {
                 return (
                   <label
-                    key={option.value}
+                    key={option.id as Key}
                     className="block text-gray-700 text-sm font-bold mb-2"
                   >
                     <input
@@ -143,7 +161,11 @@ const PreviewForm = (props: { formId: Number }) => {
                       value={option.value}
                       checked={field.value === option.value}
                       onChange={(e) => {
-                        dispatch({ type: "UPDATE_VALUE", id: field.id, value: e.target.value });
+                        dispatch({
+                          type: "UPDATE_VALUE",
+                          id: field.id,
+                          value: e.target.value,
+                        });
                       }}
                     />
                     {option.text}
@@ -158,6 +180,7 @@ const PreviewForm = (props: { formId: Number }) => {
 
   return (
     <div className="flex flex-col flex-1">
+      {loading && <LoadingComponent />}
       <div className="flex w-full my-3">
         <h2 className="text-3xl font-semibold">Preview</h2>
       </div>

@@ -13,7 +13,7 @@ const ListElement = (props: {form: formData, handleDelete: (form: formData) => v
         <div className="flex justify-start items-center gap-2">
           <div>
             <p className="text-gray-700 text-lg font-medium tracking-wider">
-              <span className="">{props.form.title}</span>
+              <span className="">{props.form.name}</span>
             </p>
           </div>
         </div>

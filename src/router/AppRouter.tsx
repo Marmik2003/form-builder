@@ -4,6 +4,7 @@ import Container from "../components/Container";
 import Home from "../pages/Home";
 import Form from "../pages/Form";
 import PreviewForm from "../pages/PreviewForm";
+import Login from "../pages/Login";
 
 const routes = {
   "/": () => <Home />,
@@ -14,6 +15,7 @@ const routes = {
   "/preview/:formId": ({ formId }: { formId: string }) => (
     <PreviewForm formId={Number(formId)} />
   ),
+  "/login": () => <Login />,
   "*": () => <div>404</div>
 };
 

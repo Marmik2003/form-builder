@@ -1,7 +1,11 @@
 export type formData = {
-  id: Number;
-  title: string;
-  formFields: formField[];
+  id: number,
+  name: string,
+  formFields: formField[],
+  description: string,
+  created_by?: number,
+  created_date?: Date,
+  modified_date?: Date
 }
 
 export type textFieldTypes = "text" | "number" | "date" | "time" | "email" | "url" | "textarea" | "password";
@@ -15,7 +19,8 @@ export type textField = {
 }
 
 export type optionField = {
-  value: string;
+  id: Number;
+  value?: string;
   text: string;
 }
 
