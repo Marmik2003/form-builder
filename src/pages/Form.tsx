@@ -1,20 +1,26 @@
-import React, { useEffect, useRef, useReducer } from "react";
-import { Link, navigate } from "raviger";
+import React, { useEffect, useRef, useReducer, useState } from "react";
+import { Link } from "raviger";
 
-import {
-  formData,
-  formField,
-  selectField,
-  textFieldTypes,
-} from "../types/form";
-import { getInitialState, saveFormData } from "../utils/StorageUtils";
+import { formData, formField, textFieldTypes } from "../types/form";
+import { saveFormData } from "../utils/StorageUtils";
 
 import FormLabelInput from "../components/FormLabelInput";
-import { FormAction } from "../types/formActions";
+import FormReducer, { getNewField } from "../reducers/FormReducer";
+import {
+  addField,
+  addOption,
+  authenticateUser,
+  getFormData,
+  removeField,
+  removeOption,
+  updateFormData,
+} from "../utils/APIMethods";
+import LoadingComponent from "../components/LoadingComponent";
 
 const newForm: formData = {
   id: Number(new Date()),
-  title: "Untitled Form",
+  name: "--------",
+  description: "",
   formFields: [],
 };
 
@@ -65,171 +71,48 @@ const fieldTypes = [
   },
 ];
 
-const getNewField: (
-  fieldType: textFieldTypes | "select" | "multiselect" | "radio",
-  newField: string
-) => formField = (fieldType, newField) => {
-  switch (fieldType) {
-    case "select":
-      return {
-        id: Number(new Date()),
-        label: newField,
-        type: fieldType,
-        options: [],
-        kind: "dropdown",
-      };
-    case "multiselect":
-      return {
-        id: Number(new Date()),
-        label: newField,
-        type: "select",
-        options: [],
-        kind: "dropdown",
-        multiple: true,
-      };
-    case "radio":
-      return {
-        id: Number(new Date()),
-        label: newField,
-        type: "select",
-        kind: "radio",
-        options: [],
-      };
-    default:
-      return {
-        id: Number(new Date()),
-        label: newField,
-        value: "",
-        type: fieldType,
-        kind: "text",
-      };
-  }
-};
-
-// Action Reducers
-const reducer: (state: formData, action: FormAction) => formData = (state, action) => {
-  switch (action.type) {
-    case "ADD_FIELD":
-      const newField = getNewField(action.fieldType, action.newField);
-      action.callback();
-      return {
-        ...state,
-        formFields: [...state.formFields, newField],
-      };
-    case "REMOVE_FIELD":
-      if(action.tgtValue !== undefined && action.tgtKind === "dropdown") {
-        return {
-          ...state,
-          formFields: state.formFields.map((field) => {
-            if(field.id === action.tgtId) {
-              (field as selectField).options = (field as selectField).options.filter(option => option.value !== action.tgtValue);
-            }
-            return field;
-          })
-        }
-      } else {
-        return {
-          ...state,
-          formFields: state.formFields.filter((field) => field.id !== action.tgtId)
-        }
-      }
-    case "UPDATE_TITLE":
-      return {
-        ...state,
-        title: action.title,
-      }
-    case "UPDATE_INPUT":
-      if (action.isOption && (action.fieldKind === "dropdown" || action.fieldKind === "radio")) {
-        return {
-          ...state,
-          formFields: state.formFields.map((field) => {
-            if (field.id === action.fieldId) {
-              return {
-                ...field,
-                options: (field as selectField).options.map((option) => {
-                  if (option.value === action.fieldValue) {
-                    return {
-                      ...option,
-                      text: action.fieldLabel,
-                    };
-                  }
-                  return option;
-                })
-              }
-            }
-            return field;
-          })
-        }
-      } else {
-        return {
-          ...state,
-          formFields: state.formFields.map((field) => {
-            if (field.id === action.fieldId) {
-              return {
-                ...field,
-                label: action.fieldLabel,
-              }
-            }
-            return field;
-          })
-        }
-      }
-    case "REMOVE_INPUT":
-      if (action.fieldValue) {
-        return {
-          ...state,
-          formFields: state.formFields.map((field) => {
-            if (field.id === action.fieldId) {
-              return {
-                ...field,
-                options: (field as selectField).options.filter(option => option.value !== action.fieldValue)
-              }
-            }
-            return field;
-          })
-        }
-      } else {
-        return {
-          ...state,
-          formFields: state.formFields.filter((field) => field.id !== action.fieldId)
-        }
-      }
-    case "ADD_OPTION":
-      return {
-        ...state,
-        formFields: state.formFields.map((field) => {
-          if (field.id === action.fieldId) {
-            return {
-              ...field,
-              options: [...(field as selectField).options, {
-                value: Number(new Date()).toString(),
-                text: "",
-              }]
-            }
-          }
-          return field;
-        })
-      }
-    default:
-      return state;
-    }
-
-};
-
-
-const Form = (props: { formId?: Number }) => {
-  const [form, dispatch] = useReducer(reducer, null, () => getInitialState(newForm, props.formId));
+const Form = (props: { formId: Number }) => {
+  const [loading, setLoading] = useState(true);
+  const [form, dispatch] = useReducer(FormReducer, newForm);
   const [newField, setNewField] = React.useState("");
   const [fieldType, setFieldType] = React.useState<
     textFieldTypes | "select" | "multiselect" | "radio"
   >("text");
 
-  const titleRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  const setForm = (formId: Number) => {
+    getFormData(formId)
+      .then((data) => {
+        data.formFields = data.fields;
+        delete data.fields;
+        dispatch({ type: "SET_FORM", data });
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const setNewFieldObject = () => {
+    const new_field = getNewField(fieldType, newField);
+    addField(props.formId, new_field).then((data: formField) => {
+      return dispatch({
+        type: "ADD_FIELD",
+        newField: data,
+        callback: () => {
+          setNewField("");
+          setFieldType("text");
+        },
+      });
+    });
+  };
+
+  useEffect(() => {
+    authenticateUser();
+  }, []);
 
   useEffect(() => {
     const oldTitle = document.title;
     document.title = "Form Builder";
-    titleRef.current?.focus();
+    nameRef.current?.focus();
     return () => {
       document.title = oldTitle;
     };
@@ -237,41 +120,73 @@ const Form = (props: { formId?: Number }) => {
 
   useEffect(() => {
     let timeout = setTimeout(() => {
-      saveFormData(form);
-    }, 300);
+      updateFormData(props.formId, form);
+    }, 1000);
     return () => clearTimeout(timeout);
-  }, [form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.name, form.description, props.formId]);
 
-  useEffect(() => {
-    form.id !== props.formId && navigate(`/form/${form.id}`);
-  }, [form.id, props.formId]);
+  useEffect(() => setForm(props.formId), [props.formId]);
 
   return (
     <div>
+      {loading && <LoadingComponent />}
       <input
-        value={form.title}
-        onChange={(e) => dispatch({ type: "UPDATE_TITLE", title: e.target.value })}
+        value={form.name}
+        onChange={(e) =>
+          dispatch({ type: "UPDATE_TITLE", name: e.target.value })
+        }
         className="border border-gray-200 rounded p-2 w-full border-b-2 mb-4"
-        ref={titleRef}
+        ref={nameRef}
       />
       <div className="flex flex-col gap-4">
         {form.formFields.map((field: formField) => (
           <FormLabelInput
+            formId={props.formId}
             field={field}
-            removeField={(tgtId, tgtKing, tgtValue) => dispatch({ type: "REMOVE_FIELD", tgtId, tgtKind: tgtKing, tgtValue })}
+            removeField={(tgtId, tgtKind, tgtValue) =>
+              (tgtKind === "dropdown" || tgtKind === "radio") &&
+              tgtValue !== undefined
+                ? removeOption(props.formId, tgtId, Number(tgtValue)).then(() =>
+                    dispatch({
+                      type: "REMOVE_FIELD",
+                      tgtId,
+                      tgtKind: tgtKind,
+                      tgtValue,
+                    })
+                  )
+                : removeField(props.formId, tgtId).then(() =>
+                    dispatch({
+                      type: "REMOVE_FIELD",
+                      tgtId,
+                      tgtKind,
+                    })
+                  )
+            }
             key={field.id.toString()}
-            setValue={(fieldKind, id, label, isOption, value) => dispatch({
-              type: "UPDATE_INPUT",
-              fieldKind,
-              fieldId: id,
-              fieldLabel: label,
-              isOption,
-              fieldValue: value,
-            })}
-            addOption={(id) => dispatch({
-              type: "ADD_OPTION",
-              fieldId: id,
-            })}
+            setValue={(fieldKind, id, label, isOption, value) =>
+              dispatch({
+                type: "UPDATE_INPUT",
+                fieldKind,
+                fieldId: id,
+                fieldLabel: label,
+                isOption,
+                fieldValue: value,
+              })
+            }
+            addOption={(id: Number) =>
+              addOption(props.formId, field.id, {
+                id: Number(new Date()),
+                text: "",
+                value: "",
+              }).then((data) =>
+                dispatch({
+                  type: "ADD_OPTION",
+                  fieldId: field.id,
+                  optionId: data.id,
+                })
+              )
+            }
           />
         ))}
         <div className="flex flex-col">
@@ -297,7 +212,7 @@ const Form = (props: { formId?: Number }) => {
             <button
               type="button"
               className="min-w-max bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => dispatch({ type: "ADD_FIELD", fieldType, newField, callback: () => setNewField("") })}
+              onClick={setNewFieldObject}
             >
               Add Input
             </button>

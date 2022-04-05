@@ -1,3 +1,10 @@
+import { formField } from "./form";
+
+type GetForm = {
+    type: 'GET_FORM';
+    formFields: formField[];
+};
+
 type UpdateSingleValue = {
     type: 'UPDATE_VALUE';
     value: string;
@@ -10,4 +17,4 @@ type UpdateMultiValue = {
     id: Number;
 };
 
-export type PreviewAction = UpdateSingleValue | UpdateMultiValue;
+export type PreviewAction = GetForm | UpdateSingleValue | UpdateMultiValue;

@@ -1,7 +1,9 @@
-import React from "react";
-import { formField, optionField, selectField } from "../types/form";
+import React, { Key, useEffect } from "react";
+import { formField, selectField } from "../types/form";
+import { updateField, updateOption } from "../utils/APIMethods";
 
 interface formInputProps {
+  formId: Number;
   field: formField;
   removeField: (tgtId: Number, tgtKind: "text" | "dropdown" | "radio", tgtValue?: string) => void;
   value?: string;
@@ -15,6 +17,7 @@ const renderInput = (
   setValue: (fieldKind: "text" | "dropdown" | "radio", id: Number, label:string, isOption?: boolean, fieldValue?: string) => void,
   addOption: (fieldId: Number) => void,
 ) => {
+
   switch (field.type) {
     case "text":
       return (
@@ -63,20 +66,20 @@ const renderInput = (
           ) : (
             <p className="font-medium">No options</p>
             )}
-          {field.options.map((option: optionField) => (
-            <div className="flex gap-2" key={option.value}>
+          {field.options.map((option) => (
+            <div className="flex gap-2" key={option.id as Key}>
               <input
                 type="text"
-                id={option.value}
+                id={option.id.toString()}
                 placeholder={option.text}
                 value={option.text}
-                onChange={(e) => setValue(field.kind, field.id, e.target.value, true, option.value)}
+                onChange={(e) => setValue(field.kind, field.id, e.target.value, true, option.id.toString())}
                 className="border border-gray-200 rounded p-2 w-full"
               />
               <button
                 type="button"
                 className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                onClick={() => removeField(field.id, field.kind, option.value)}
+                onClick={() => removeField(field.id, field.kind, option.id.toString())}
               >
                 Remove
               </button>
@@ -114,7 +117,27 @@ const renderInput = (
   }
 };
 
-const FormLabelInput = ({ field, removeField, setValue, addOption }: formInputProps) => {
+const FormLabelInput = ({ formId, field, removeField, setValue, addOption }: formInputProps) => {
+  useEffect(() => {
+    let timeout = setTimeout(async () => {
+        await updateField(formId, field.id!, field);
+    }, 1000);
+    return () => clearTimeout(timeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [field.label, formId]);
+
+  useEffect(() => {
+    let timeout = setTimeout(async () => {
+      if ((field as selectField).options) {
+        await (field as selectField).options.forEach((option) => {
+          updateOption(formId, field.id, option.id, option);
+        });
+      }
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [field, formId]);
+
+
   return (
     <div className="flex flex-col" key={field.id.toString()}>
       <label className="pb-2" htmlFor={field.id.toString()}>

@@ -1,35 +1,90 @@
 import React, { useState, useEffect } from "react";
 import { formData } from "../types/form";
 
-import { Link, useQueryParams } from "raviger";
+import { useQueryParams } from "raviger";
 
-import { getLocalForms } from "../utils/StorageUtils";
 import ListElement from "../components/ListElement";
+import { Pagination, PaginationData } from "../types/common";
+import { authenticateUser, deleteForm, listForms } from "../utils/APIMethods";
+import Modal from "../components/Modal";
+import CreateForm from "../components/CreateFormModal";
+import LoadingComponent from "../components/LoadingComponent";
+import PaginationContainer from "../components/PaginationContainer";
+
+const fetchFormsData = async (
+  setFormsData: React.Dispatch<React.SetStateAction<PaginationData<formData>>>,
+  setLoading?: React.Dispatch<React.SetStateAction<boolean>>,
+  offset?: number,
+  limit?: number
+) => {
+  try {
+    if (setLoading) setLoading(true);
+    const offsetValue: number = offset ? offset : 0;
+    const limitValue: number = limit ? limit : 5;
+    const data: Pagination<formData> = await listForms({
+      offset: offsetValue,
+      limit: limitValue,
+    });
+
+    setFormsData({
+      results: data.results,
+      count: data.count,
+      prev: data.prev,
+      next: data.next,
+      limit: limitValue,
+      activePage: offsetValue ? offsetValue / limitValue + 1 : 1,
+    });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    if (setLoading) setLoading(false);
+  }
+};
 
 const Home = () => {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [forms, setForms] = useState<PaginationData<formData>>({
+    count: 0,
+    prev: null,
+    next: null,
+    results: [],
+    limit: 5,
+    activePage: 0,
+  });
   const [{ search }, setQueryParams] = useQueryParams();
   const [searchString, setSearchString] = useState("");
-  const [localForms, setLocalForms] = useState<formData[]>(getLocalForms());
 
   useEffect(() => {
-    localStorage.setItem("savedForms", JSON.stringify(localForms));
-  }, [localForms]);
+    authenticateUser().then((_) => fetchFormsData(setForms, setLoading));
+  }, []);
 
   useEffect(() => {
     let timeout = setTimeout(() => {
       setQueryParams({ search: searchString });
     }, 300);
     return () => clearTimeout(timeout);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchString]);
 
   const handleDelete = (form: formData) => {
-    setLocalForms(localForms.filter((f) => f.id !== form.id));
+    deleteForm(form.id).then((_) => {
+      setForms(forms => ({
+        ...forms,
+        results: forms.results.filter(f => f.id !== form.id),
+      }))
+    });
+  };
+
+  const handlePageChange = (page: number) => {
+    const offset = (page - 1) * forms.limit;
+    fetchFormsData(setForms, setLoading, offset, forms.limit);
   }
 
   return (
     <>
       <div className="flex flex-wrap -mx-3 mb-6">
+        {loading && <LoadingComponent />}
         <div className="w-full px-3">
           <label
             className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
@@ -48,10 +103,10 @@ const Home = () => {
           />
         </div>
       </div>
-      {localForms.length > 0 &&
-        localForms
+      {forms.results.length > 0 &&
+        forms.results
           .filter((f: formData) =>
-            f.title.toLowerCase().includes(search?.trim().toLowerCase() || "")
+            f.name.toLowerCase().includes(search?.trim().toLowerCase() || "")
           )
           .map((f: formData) => (
             <ListElement
@@ -60,14 +115,23 @@ const Home = () => {
               handleDelete={handleDelete}
             />
           ))}
+      <PaginationContainer
+        count={forms.count}
+        limit={forms.limit}
+        activePage={forms.activePage}
+        onPageChange={handlePageChange}
+      />
       <div className="my-4">
-        <Link
-          href={`/form/0`}
+        <button
+          onClick={() => setOpen(true)}
           className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
         >
           New Form
-        </Link>
+        </button>
       </div>
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <CreateForm />
+      </Modal>
     </>
   );
 };
