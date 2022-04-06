@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Form Builder",
+  "name": "Typeform builder for GDC WD301",
   "icons": [
     {
       "src": "favicon.ico",
