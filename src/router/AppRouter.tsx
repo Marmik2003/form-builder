@@ -1,10 +1,14 @@
+import React, { Suspense } from "react";
 import { useRoutes } from "raviger";
-import About from "../pages/About";
+
+import Loading from "../components/LoadingComponent";
 import Container from "../components/Container";
-import Home from "../pages/Home";
-import Form from "../pages/Form";
-import PreviewForm from "../pages/PreviewForm";
-import Login from "../pages/Login";
+
+const Login = React.lazy(() => import("../pages/Login"));
+const Home = React.lazy(() => import("../pages/Home"));
+const About = React.lazy(() => import("../pages/About"));
+const Form = React.lazy(() => import("../pages/Form"));
+const PreviewForm = React.lazy(() => import("../pages/PreviewForm"));
 
 const routes = {
   "/": () => <Home />,
@@ -21,5 +25,5 @@ const routes = {
 
 export default function AppRouter() {
   const routeResult = useRoutes(routes);
-  return <Container>{routeResult}</Container>;
+  return <Suspense fallback={<Loading />}><Container>{routeResult}</Container></Suspense>;
 }
