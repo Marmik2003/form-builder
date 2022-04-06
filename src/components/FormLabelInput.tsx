@@ -32,7 +32,7 @@ const renderInput = (
           />
           <button
             type="button"
-            className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             onClick={() => removeField(field.id, field.kind)}
           >
             Remove
@@ -46,15 +46,16 @@ const renderInput = (
           <div className="flex gap-2">
             <input
               type="text"
-              id={field.id.toString()}
+              id={`label${field.id}`}
               placeholder={field.label}
               value={field.label}
               onChange={(e) => setValue(field.kind, field.id, e.target.value)}
               className="border border-gray-200 rounded p-2 w-full"
+              aria-label="Edit label"
             />
             <button
               type="button"
-              className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               onClick={() => removeField(field.id, field.kind)}
             >
               Remove
@@ -70,7 +71,7 @@ const renderInput = (
             <div className="flex gap-2" key={option.id as Key}>
               <input
                 type="text"
-                id={option.id.toString()}
+                id={`option${option.id}`}
                 placeholder={option.text}
                 value={option.text}
                 onChange={(e) => setValue(field.kind, field.id, e.target.value, true, option.id.toString())}
@@ -78,7 +79,7 @@ const renderInput = (
               />
               <button
                 type="button"
-                className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 onClick={() => removeField(field.id, field.kind, option.id.toString())}
               >
                 Remove
@@ -87,7 +88,7 @@ const renderInput = (
           ))}
           <button
             type="button"
-            className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded mb-3"
+            className="w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded mb-3"
             onClick={() => addOption(field.id)}
           >
             Add Option
@@ -107,7 +108,7 @@ const renderInput = (
           />
           <button
             type="button"
-            className="w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             onClick={() => removeField(field.id, field.kind )}
           >
             Remove

@@ -200,7 +200,7 @@ const PreviewForm = (props: { formId: Number }) => {
               {currentFieldIdx > 0 && (
                 <button
                   type="button"
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
                   onClick={() => setCurrentFieldIdx(currentFieldIdx - 1)}
                 >
                   <FontAwesomeIcon icon={faArrowLeft} /> Previous
@@ -209,7 +209,7 @@ const PreviewForm = (props: { formId: Number }) => {
               {currentFieldIdx < formFields.length - 1 && (
                 <button
                   onClick={() => setCurrentFieldIdx(currentFieldIdx + 1)}
-                  className="bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 my-4 rounded"
+                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 my-4 rounded"
                 >
                   Next <FontAwesomeIcon icon={faArrowRight} />
                 </button>

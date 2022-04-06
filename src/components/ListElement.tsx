@@ -21,18 +21,21 @@ const ListElement = (props: {form: formData, handleDelete: (form: formData) => v
           <Link
             href={`/preview/${props.form.id}`}
             className="w-full bg-blue-400 font-medium px-2 py-1 rounded-md text-white tracking-wide"
+            title="Preview"
           >
             <FontAwesomeIcon icon={faEye} />
           </Link>
           <Link
             href={`/form/${props.form.id}`}
             className="w-full bg-teal-400 font-medium px-2 py-1 rounded-md text-white tracking-wide"
+            title="Edit"
           >
             <FontAwesomeIcon icon={faEdit} />
           </Link>
           <button
             onClick={() => props.handleDelete(props.form)}
             className="w-full bg-red-500 font-medium px-2 py-1 rounded-md text-white tracking-wide"
+            title="Delete"
           >
             <FontAwesomeIcon icon={faTrashAlt} />
           </button>

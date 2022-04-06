@@ -9,25 +9,26 @@ import { authenticateUser, deleteForm, listForms } from "../utils/APIMethods";
 import Modal from "../components/Modal";
 import CreateForm from "../components/CreateFormModal";
 import LoadingComponent from "../components/LoadingComponent";
-import PaginationContainer from "../components/PaginationContainer";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 const fetchFormsData = async (
   setFormsData: React.Dispatch<React.SetStateAction<PaginationData<formData>>>,
   setLoading?: React.Dispatch<React.SetStateAction<boolean>>,
   offset?: number,
-  limit?: number
+  limit?: number,
+  forms?: PaginationData<formData>,
 ) => {
   try {
     if (setLoading) setLoading(true);
     const offsetValue: number = offset ? offset : 0;
-    const limitValue: number = limit ? limit : 5;
+    const limitValue: number = limit ? limit : 10;
     const data: Pagination<formData> = await listForms({
       offset: offsetValue,
       limit: limitValue,
     });
 
     setFormsData({
-      results: data.results,
+      results: forms ? forms.results.concat(data.results) : data.results,
       count: data.count,
       prev: data.prev,
       next: data.next,
@@ -49,7 +50,7 @@ const Home = () => {
     prev: null,
     next: null,
     results: [],
-    limit: 5,
+    limit: 10,
     activePage: 0,
   });
   const [{ search }, setQueryParams] = useQueryParams();
@@ -69,17 +70,17 @@ const Home = () => {
 
   const handleDelete = (form: formData) => {
     deleteForm(form.id).then((_) => {
-      setForms(forms => ({
+      setForms((forms) => ({
         ...forms,
-        results: forms.results.filter(f => f.id !== form.id),
-      }))
+        results: forms.results.filter((f) => f.id !== form.id),
+      }));
     });
   };
 
   const handlePageChange = (page: number) => {
     const offset = (page - 1) * forms.limit;
-    fetchFormsData(setForms, setLoading, offset, forms.limit);
-  }
+    fetchFormsData(setForms, setLoading, offset, forms.limit, forms);
+  };
 
   return (
     <>
@@ -103,28 +104,29 @@ const Home = () => {
           />
         </div>
       </div>
-      {forms.results.length > 0 &&
-        forms.results
-          .filter((f: formData) =>
-            f.name.toLowerCase().includes(search?.trim().toLowerCase() || "")
-          )
-          .map((f: formData) => (
-            <ListElement
-              key={f.id.toString()}
-              form={f}
-              handleDelete={handleDelete}
-            />
-          ))}
-      <PaginationContainer
-        count={forms.count}
-        limit={forms.limit}
-        activePage={forms.activePage}
-        onPageChange={handlePageChange}
-      />
+      <InfiniteScroll
+        dataLength={forms.count}
+        hasMore={forms.activePage < forms.count / forms.limit}
+        next={() => handlePageChange(forms.activePage + 1)}
+        loader={<LoadingComponent />}
+      >
+        {forms.results.length > 0 &&
+          forms.results
+            .filter((f: formData) =>
+              f.name.toLowerCase().includes(search?.trim().toLowerCase() || "")
+            )
+            .map((f: formData) => (
+              <ListElement
+                key={f.id.toString()}
+                form={f}
+                handleDelete={handleDelete}
+              />
+            ))}
+      </InfiniteScroll>
       <div className="my-4">
         <button
           onClick={() => setOpen(true)}
-          className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
         >
           New Form
         </button>
