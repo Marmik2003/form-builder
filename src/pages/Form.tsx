@@ -138,6 +138,7 @@ const Form = (props: { formId: Number }) => {
         }
         className="border border-gray-200 rounded p-2 w-full border-b-2 mb-4"
         ref={nameRef}
+        aria-label="Form Title"
       />
       <div className="flex flex-col gap-4">
         {form.formFields.map((field: formField) => (
@@ -211,7 +212,7 @@ const Form = (props: { formId: Number }) => {
             </select>
             <button
               type="button"
-              className="min-w-max bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="min-w-max bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               onClick={setNewFieldObject}
             >
               Add Input
@@ -222,14 +223,14 @@ const Form = (props: { formId: Number }) => {
         <div className="flex w-auto gap-2">
           <button
             type="button"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
             onClick={() => saveFormData(form)}
           >
             Save
           </button>
           <Link
             href="/"
-            className="bg-rose-500 hover:bg-rose-700 text-white font-bold py-2 px-4 my-4 rounded"
+            className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 my-4 rounded"
           >
             Close Form
           </Link>

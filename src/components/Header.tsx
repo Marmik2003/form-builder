@@ -23,7 +23,7 @@ const Header = () => {
             <ActiveLink
               className="text-center block border-white rounded-full text-black"
               href={link.path}
-              exactActiveClass="text-blue-500"
+              exactActiveClass="text-blue-600 font-semibold"
             >
               {link.name}
             </ActiveLink>
