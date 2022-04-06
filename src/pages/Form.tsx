@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useReducer, useState } from "react";
 import { Link } from "raviger";
 
 import { formData, formField, textFieldTypes } from "../types/form";
-import { saveFormData } from "../utils/StorageUtils";
 
 import FormLabelInput from "../components/FormLabelInput";
 import FormReducer, { getNewField } from "../reducers/FormReducer";
@@ -221,13 +220,13 @@ const Form = (props: { formId: Number }) => {
         </div>
 
         <div className="flex w-auto gap-2">
-          <button
+          {/* <button
             type="button"
             className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
             onClick={() => saveFormData(form)}
           >
             Save
-          </button>
+          </button> */}
           <Link
             href="/"
             className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 my-4 rounded"
