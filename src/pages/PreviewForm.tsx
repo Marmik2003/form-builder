@@ -11,11 +11,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { MultiSelect } from "react-multi-select-component";
 import PreviewReducer from "../reducers/PreviewReducer";
-import { authenticateUser, getFormData } from "../utils/APIMethods";
+import { authenticateUser, getFormData, getSubmission, submitForm } from "../utils/APIMethods";
 import LoadingComponent from "../components/LoadingComponent";
 
 
-const PreviewForm = (props: { formId: Number }) => {
+const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
   const [loading, setLoading] = useState(true);
 
   const [formFields, dispatch] = useReducer(
@@ -27,23 +27,62 @@ const PreviewForm = (props: { formId: Number }) => {
   useEffect(() => {
     authenticateUser().then((_) => {
       getFormData(props.formId).then((data) => {
-        setLoading(false);
-
-        dispatch({
-          type: "GET_FORM",
-          formFields: data.fields,
-        });
-      });
+        if (props.previewId) {
+          getSubmission(props.formId, props.previewId).then((submission) => {
+            data.fields = data.fields.map((field: formField) => {
+              submission.fields.forEach((submissionField: any) => {
+                if (field.id === submissionField.field.id) {
+                  if (field.kind === "dropdown" && field.multiple){
+                    field.value = submissionField.value.split(',');
+                  } else {
+                    field.value = submissionField.value;
+                  }
+                }
+              })
+              return field;
+            });
+            console.log(data);
+            dispatch({ type: "GET_FORM", formFields: data.fields });
+          });
+        } else {
+          dispatch({
+            type: "GET_FORM",
+            formFields: data.fields,
+          });
+        }
+      }).finally(() => setLoading(false));
     }).catch((error) => {
       console.error(error);
     });
-  }, [props.formId]);
+  }, [props.formId, props.previewId]);
 
   const getCurrentField = () => {
     if (formFields.length > 0) {
       return formFields[currentFieldIdx];
     }
     navigate("/");
+  };
+
+  const submitPreviewForm = () => {
+    setLoading(true);
+    const fieldData = formFields.map((field) => {
+      return {
+        field: field.id,
+        value: field.value?.toString() ?? "",
+      }
+    });
+    const submissionData = {
+      fields: fieldData,
+    };
+    submitForm(props.formId, submissionData).then((_) => {
+      alert("Form submitted successfully");
+      navigate("/");
+    }).catch((error) => {
+      console.error(error);
+      alert("Error submitting form");
+    }).finally(() => {
+      setLoading(false);
+    });
   };
 
   const renderField = (field: formField | undefined) => {
@@ -212,6 +251,14 @@ const PreviewForm = (props: { formId: Number }) => {
                   className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 my-4 rounded"
                 >
                   Next <FontAwesomeIcon icon={faArrowRight} />
+                </button>
+              )}
+              {(!props.previewId && (currentFieldIdx === formFields.length - 1)) && (
+                <button
+                  onClick={submitPreviewForm}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
+                >
+                  Submit
                 </button>
               )}
             </div>

@@ -4,43 +4,13 @@ import { formData } from "../types/form";
 import { useQueryParams } from "raviger";
 
 import ListElement from "../components/ListElement";
-import { Pagination, PaginationData } from "../types/common";
-import { authenticateUser, deleteForm, listForms } from "../utils/APIMethods";
+import { PaginationData } from "../types/common";
+import { authenticateUser, deleteForm } from "../utils/APIMethods";
+import { fetchFormData } from "../utils/PaginationUtils";
 import Modal from "../components/Modal";
 import CreateForm from "../components/CreateFormModal";
 import LoadingComponent from "../components/LoadingComponent";
 import InfiniteScroll from "react-infinite-scroll-component";
-
-const fetchFormsData = async (
-  setFormsData: React.Dispatch<React.SetStateAction<PaginationData<formData>>>,
-  setLoading?: React.Dispatch<React.SetStateAction<boolean>>,
-  offset?: number,
-  limit?: number,
-  forms?: PaginationData<formData>,
-) => {
-  try {
-    if (setLoading) setLoading(true);
-    const offsetValue: number = offset ? offset : 0;
-    const limitValue: number = limit ? limit : 10;
-    const data: Pagination<formData> = await listForms({
-      offset: offsetValue,
-      limit: limitValue,
-    });
-
-    setFormsData({
-      results: forms ? forms.results.concat(data.results) : data.results,
-      count: data.count,
-      prev: data.prev,
-      next: data.next,
-      limit: limitValue,
-      activePage: offsetValue ? offsetValue / limitValue + 1 : 1,
-    });
-  } catch (error) {
-    console.error(error);
-  } finally {
-    if (setLoading) setLoading(false);
-  }
-};
 
 const Home = () => {
   const [open, setOpen] = useState(false);
@@ -57,7 +27,7 @@ const Home = () => {
   const [searchString, setSearchString] = useState("");
 
   useEffect(() => {
-    authenticateUser().then((_) => fetchFormsData(setForms, setLoading));
+    authenticateUser().then((_) => fetchFormData(setForms, setLoading));
   }, []);
 
   useEffect(() => {
@@ -79,7 +49,7 @@ const Home = () => {
 
   const handlePageChange = (page: number) => {
     const offset = (page - 1) * forms.limit;
-    fetchFormsData(setForms, setLoading, offset, forms.limit, forms);
+    fetchFormData(setForms, setLoading, offset, forms.limit, forms);
   };
 
   return (

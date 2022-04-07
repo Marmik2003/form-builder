@@ -107,3 +107,15 @@ export const updateOption = (formId: Number, fieldId: Number, optionId: Number, 
 export const removeOption = (formId: Number, fieldId: Number, optionId: Number) => {
     return request(`forms/${formId}/fields/${fieldId}/options/${optionId}/`, 'DELETE');
 }
+
+export const submitForm = (formId: Number, formFields: { fields: { field: Number, value:string }[]}) => {
+    return request(`forms/${formId}/submissions/`, 'POST', formFields);
+}
+
+export const getSubmissions = (formId: Number, pageParams?: PaginationParams) => {
+    return request(`forms/${formId}/submissions/`, 'GET', pageParams);
+}
+
+export const getSubmission = (formId: Number, submissionId: Number) => {
+    return request(`forms/${formId}/submissions/${submissionId}/`, 'GET');
+}
