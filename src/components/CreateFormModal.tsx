@@ -1,6 +1,7 @@
 /* This example requires Tailwind CSS v2.0+ */
 import { navigate } from 'raviger';
 import React, { useEffect, useState } from 'react'
+import { toast } from 'react-toastify';
 
 import { formData } from '../types/form';
 
@@ -25,7 +26,9 @@ export default function CreateForm() {
             navigate(`/form/${data.id}`)
         } catch (error) {
             console.log((error as Error).message);
-            alert((error as Error).message);
+            toast((error as Error).message, {
+                type: toast.TYPE.ERROR,
+            })
         }
     }
 

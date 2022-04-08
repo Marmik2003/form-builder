@@ -1,5 +1,6 @@
 import { navigate } from "raviger";
 import React, { useEffect, useState } from "react"
+import { toast } from "react-toastify";
 import { login } from "../utils/APIMethods";
 
 
@@ -21,7 +22,9 @@ export default function Login() {
             localStorage.setItem("token", res.token);
             navigate("/");
         }).catch(err => {
-            alert(err.message);
+            toast(err.message, {
+                type: toast.TYPE.ERROR
+            })
         });
     }
 

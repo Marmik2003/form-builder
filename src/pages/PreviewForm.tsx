@@ -13,6 +13,7 @@ import { MultiSelect } from "react-multi-select-component";
 import PreviewReducer from "../reducers/PreviewReducer";
 import { authenticateUser, getFormData, getSubmission, submitForm } from "../utils/APIMethods";
 import LoadingComponent from "../components/LoadingComponent";
+import { toast } from "react-toastify";
 
 
 const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
@@ -75,11 +76,14 @@ const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
       fields: fieldData,
     };
     submitForm(props.formId, submissionData).then((_) => {
-      alert("Form submitted successfully");
+      toast("Form successfully submitted!", {
+        type: toast.TYPE.SUCCESS,
+      });
       navigate("/");
     }).catch((error) => {
-      console.error(error);
-      alert("Error submitting form");
+      toast(error.message, {
+        type: toast.TYPE.ERROR,
+      });
     }).finally(() => {
       setLoading(false);
     });

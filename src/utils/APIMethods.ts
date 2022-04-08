@@ -1,4 +1,5 @@
 import { navigate } from "raviger";
+import { toast } from "react-toastify";
 import { PaginationParams } from "../types/common";
 import {  formField, formData, optionField } from "../types/form";
 
@@ -8,7 +9,9 @@ type RequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export const authenticateUser = async () => {
     me().catch(() => {
-        alert("Please login to continue");
+        toast.error("Please login to continue", {
+            type: toast.TYPE.ERROR,
+        });
         navigate("/login");
         throw new Error("User not logged in");
     })

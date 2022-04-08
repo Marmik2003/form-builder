@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 
 import './index.css';
+import 'react-toastify/dist/ReactToastify.css';
 import reportWebVitals from './reportWebVitals';
 import AppRouter from './router/AppRouter';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';

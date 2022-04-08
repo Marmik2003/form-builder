@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, navigate } from "raviger";
 import React, { Key, useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { toast } from "react-toastify";
 import Loading from "../components/LoadingComponent";
 import { PaginationData } from "../types/common";
 import { submissionData } from "../types/submission";
@@ -28,7 +29,9 @@ const FormSubmissions = (props: { formId: Number }) => {
         fetchSubmissions(props.formId, setFormSubmissions, setLoading);
       })
       .catch((_) => {
-        alert("You are not authorized to view this page");
+        toast("You are not authorized to view this page", {
+          type: toast.TYPE.ERROR,
+        })
         navigate("/login");
       })
       .finally(() => {
