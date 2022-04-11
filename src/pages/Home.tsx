@@ -30,7 +30,13 @@ const Home = () => {
   useEffect(() => {
     fetchFormData(setForms, setLoading);
     me()
-      .then((_) => setIsLoggedIn(true))
+      .then((_) => {
+        if (!_.username) {
+          setIsLoggedIn(false);
+        } else {
+          setIsLoggedIn(true);
+        }
+      })
       .catch((_) => setIsLoggedIn(false));
   }, []);
 

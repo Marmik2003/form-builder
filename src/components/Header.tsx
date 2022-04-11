@@ -12,8 +12,10 @@ const BaseRouteLinks = [
 const Header = () => {
   const [routeLinks, setRouteLinks] = React.useState(BaseRouteLinks);
   useEffect(() => {
-    me().catch((_) => {
-      setRouteLinks([...BaseRouteLinks, { name: "Login", path: "/login" }]);
+    me().then((_) => {
+      if (!_.username){
+        setRouteLinks(BaseRouteLinks.concat([{ name: "Login", path: "/login" }]));
+      }
     });
   }, [])
 

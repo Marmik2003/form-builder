@@ -21,6 +21,7 @@ const PreviewForm = (props: { formId: Number; previewId?: Number }) => {
   const [currentFieldIdx, setCurrentFieldIdx] = useState(0);
 
   useEffect(() => {
+    const abortController = new AbortController();
     getFormData(props.formId)
       .then((data) => {
         if (props.previewId) {
@@ -37,7 +38,6 @@ const PreviewForm = (props: { formId: Number; previewId?: Number }) => {
               });
               return field;
             });
-            console.log(data);
             dispatch({ type: "GET_FORM", formFields: data.fields });
           });
         } else {
@@ -48,6 +48,7 @@ const PreviewForm = (props: { formId: Number; previewId?: Number }) => {
         }
       })
       .finally(() => setLoading(false));
+    return () => abortController.abort();
   }, [props.formId, props.previewId]);
 
   const getCurrentField = () => {

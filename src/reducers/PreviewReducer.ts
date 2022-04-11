@@ -9,7 +9,6 @@ const reducer: (state: formField[], action: PreviewAction) => formField[] = (
     case "GET_FORM":
       return action.formFields;
     case "UPDATE_VALUE":
-      console.log(action.value);
       return state.map((field: formField) => {
         if (field.id === action.id) {
           return { ...field, value: action.value };
@@ -18,7 +17,6 @@ const reducer: (state: formField[], action: PreviewAction) => formField[] = (
         }
       });
     case "UPDATE_MULTI_VALUE":
-      console.log(action.value);
       return state.map((field: formField) => {
         if (field.id === action.id) {
           return { ...(field as selectField), value: action.value };
