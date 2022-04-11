@@ -1,14 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ActiveLink } from "raviger";
 
 import logo from "../assets/logo.svg";
+import { me } from "../utils/APIMethods";
 
-const routeLinks = [
+const BaseRouteLinks = [
   { name: "Home", path: "/" },
   { name: "About", path: "/about" },
 ];
 
 const Header = () => {
+  const [routeLinks, setRouteLinks] = React.useState(BaseRouteLinks);
+  useEffect(() => {
+    me().catch((_) => {
+      setRouteLinks([...BaseRouteLinks, { name: "Login", path: "/login" }]);
+    });
+  }, [])
+
   return (
     <div className="flex justify-between gap-2 items-center">
       <img

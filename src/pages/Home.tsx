@@ -5,7 +5,7 @@ import { useQueryParams } from "raviger";
 
 import ListElement from "../components/ListElement";
 import { PaginationData } from "../types/common";
-import { authenticateUser, deleteForm } from "../utils/APIMethods";
+import { deleteForm, me } from "../utils/APIMethods";
 import { fetchFormData } from "../utils/PaginationUtils";
 import Modal from "../components/Modal";
 import CreateForm from "../components/CreateFormModal";
@@ -15,6 +15,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 const Home = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [forms, setForms] = useState<PaginationData<formData>>({
     count: 0,
     prev: null,
@@ -27,7 +28,10 @@ const Home = () => {
   const [searchString, setSearchString] = useState("");
 
   useEffect(() => {
-    authenticateUser().then((_) => fetchFormData(setForms, setLoading));
+    fetchFormData(setForms, setLoading);
+    me()
+      .then((_) => setIsLoggedIn(true))
+      .catch((_) => setIsLoggedIn(false));
   }, []);
 
   useEffect(() => {
@@ -90,17 +94,20 @@ const Home = () => {
                 key={f.id.toString()}
                 form={f}
                 handleDelete={handleDelete}
+                isUserLoggedIn={isLoggedIn}
               />
             ))}
       </InfiniteScroll>
-      <div className="my-4">
-        <button
-          onClick={() => setOpen(true)}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
-        >
-          New Form
-        </button>
-      </div>
+      {isLoggedIn && (
+        <div className="my-4">
+          <button
+            onClick={() => setOpen(true)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
+          >
+            New Form
+          </button>
+        </div>
+      )}
       <Modal open={open} onClose={() => setOpen(false)}>
         <CreateForm />
       </Modal>

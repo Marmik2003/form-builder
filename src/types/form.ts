@@ -3,6 +3,7 @@ export type formData = {
   name: string,
   formFields: formField[],
   description: string,
+  is_public?: boolean,
   created_by?: number,
   created_date?: Date,
   modified_date?: Date

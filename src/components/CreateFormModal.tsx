@@ -13,6 +13,7 @@ export default function CreateForm() {
         name: "",
         description: "",
         formFields: [],
+        is_public: false,
     })
 
     useEffect(() => {
@@ -64,6 +65,22 @@ export default function CreateForm() {
                         className="w-full p-2 my-2 border-2 border-gray-200 rounded-lg"
                     />
                 </div>
+
+                <div className="mb-4">
+                    <input 
+                        id="is_public"
+                        type="checkbox" 
+                        name="is_public"
+                        value={form.is_public ? "true" : "false"}
+                        onChange={e => setForm({
+                            ...form,
+                            is_public: e.target.checked
+                        })}
+                        className="w-[14px] h-[14px] my-2 mr-2 border-2 border-gray-200 rounded-lg"
+                    />
+                    <label htmlFor="is_public">Is Public</label>
+                </div>
+
                 <button type="submit" className="w-full py-2 rounded-lg bg-blue-500 text-lg text-white font-semibold hover:bg-blue-600 hover:shadow-lg">Create</button>
 
             </form>

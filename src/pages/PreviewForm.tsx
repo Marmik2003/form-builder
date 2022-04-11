@@ -1,45 +1,40 @@
 import React, { Key, useEffect, useReducer, useState } from "react";
 import { navigate } from "raviger";
 
-import {
-  formField,
-  optionField,
-  selectField,
-  textField,
-} from "../types/form";
+import { formField, optionField, selectField, textField } from "../types/form";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { MultiSelect } from "react-multi-select-component";
 import PreviewReducer from "../reducers/PreviewReducer";
-import { authenticateUser, getFormData, getSubmission, submitForm } from "../utils/APIMethods";
+import {
+  getFormData,
+  getSubmission,
+  submitForm,
+} from "../utils/APIMethods";
 import LoadingComponent from "../components/LoadingComponent";
 import { toast } from "react-toastify";
 
-
-const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
+const PreviewForm = (props: { formId: Number; previewId?: Number }) => {
   const [loading, setLoading] = useState(true);
 
-  const [formFields, dispatch] = useReducer(
-    PreviewReducer,
-    []
-  );
+  const [formFields, dispatch] = useReducer(PreviewReducer, []);
   const [currentFieldIdx, setCurrentFieldIdx] = useState(0);
 
   useEffect(() => {
-    authenticateUser().then((_) => {
-      getFormData(props.formId).then((data) => {
+    getFormData(props.formId)
+      .then((data) => {
         if (props.previewId) {
           getSubmission(props.formId, props.previewId).then((submission) => {
             data.fields = data.fields.map((field: formField) => {
               submission.fields.forEach((submissionField: any) => {
                 if (field.id === submissionField.field.id) {
-                  if (field.kind === "dropdown" && field.multiple){
-                    field.value = submissionField.value.split(',');
+                  if (field.kind === "dropdown" && field.multiple) {
+                    field.value = submissionField.value.split(",");
                   } else {
                     field.value = submissionField.value;
                   }
                 }
-              })
+              });
               return field;
             });
             console.log(data);
@@ -51,10 +46,8 @@ const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
             formFields: data.fields,
           });
         }
-      }).finally(() => setLoading(false));
-    }).catch((error) => {
-      console.error(error);
-    });
+      })
+      .finally(() => setLoading(false));
   }, [props.formId, props.previewId]);
 
   const getCurrentField = () => {
@@ -70,23 +63,26 @@ const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
       return {
         field: field.id,
         value: field.value?.toString() ?? "",
-      }
+      };
     });
     const submissionData = {
       fields: fieldData,
     };
-    submitForm(props.formId, submissionData).then((_) => {
-      toast("Form successfully submitted!", {
-        type: toast.TYPE.SUCCESS,
+    submitForm(props.formId, submissionData)
+      .then((_) => {
+        toast("Form successfully submitted!", {
+          type: toast.TYPE.SUCCESS,
+        });
+        navigate("/");
+      })
+      .catch((error) => {
+        toast(error.message, {
+          type: toast.TYPE.ERROR,
+        });
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      navigate("/");
-    }).catch((error) => {
-      toast(error.message, {
-        type: toast.TYPE.ERROR,
-      });
-    }).finally(() => {
-      setLoading(false);
-    });
   };
 
   const renderField = (field: formField | undefined) => {
@@ -141,7 +137,8 @@ const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
                         value,
                         label:
                           (field as selectField).options.find(
-                            (option: optionField) => option.id.toString() === value
+                            (option: optionField) =>
+                              option.id.toString() === value
                           )?.text ?? "",
                       })
                     )
@@ -167,9 +164,8 @@ const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
                   ? dispatch({
                       type: "UPDATE_MULTI_VALUE",
                       id: field.id,
-                      value: Array.from(
-                        e.target.selectedOptions,
-                        (option) => option.id.toString()
+                      value: Array.from(e.target.selectedOptions, (option) =>
+                        option.id.toString()
                       ),
                     })
                   : dispatch({
@@ -257,7 +253,7 @@ const PreviewForm = (props: { formId: Number, previewId?: Number }) => {
                   Next <FontAwesomeIcon icon={faArrowRight} />
                 </button>
               )}
-              {(!props.previewId && (currentFieldIdx === formFields.length - 1)) && (
+              {!props.previewId && currentFieldIdx === formFields.length - 1 && (
                 <button
                   onClick={submitPreviewForm}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded"
